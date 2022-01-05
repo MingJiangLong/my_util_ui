@@ -4,7 +4,7 @@ import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 
 const instance = axios.create({
     timeout: 20000,
-    baseURL: process.env.NODE_ENV === 'development' ? '' : ''
+    baseURL: process.env.NODE_ENV === 'development' ? '' : 'http://42.192.81.29'
 });
 
 // 默认请求头
