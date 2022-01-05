@@ -4,7 +4,7 @@ import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 
 const instance = axios.create({
     timeout: 20000,
-    baseURL: process.env.NODE_ENV === 'development' ? '' : 'http://42.192.81.29'
+    baseURL: process.env.NODE_ENV === 'development' ? '' : 'http://42.192.81.29/api'
 });
 
 // 默认请求头
@@ -85,15 +85,6 @@ const Http = {
     fetch<T>(url: string, data?: any, config?: AxiosRequestConfig) {
         return httpUtil<T>(url, 'GET', data, config)
     },
-    upload<T>(url: string, formdata?: FormData, config?: AxiosRequestConfig) {
-        return httpUtil<T>(url, 'POST', formdata, {
-            headers: {
-                ...defaultHeader,
-                'Content-Type': 'multipart/form-data; boundary=----666',
-            }, ...config
-        })
-    }
-
 }
 
 export default Http;
