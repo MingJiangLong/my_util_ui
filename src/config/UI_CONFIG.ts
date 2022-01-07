@@ -9,14 +9,14 @@ export const FNS_ARR = [
     },
     {
         name: '运行项目',
-        imageAlias: '/processManage',
+        imageAlias: 'ProcessManage',
         route: 'ProcessManage',
         weight: 2,
     },
     {
-        name: '测试',
-        imageAlias: 'QrCode',
-        route: '',
+        name: 'JSON格式化',
+        imageAlias: 'BeJson',
+        route: '/bejson',
         weight: 0,
     },
 ]

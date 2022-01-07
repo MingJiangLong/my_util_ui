@@ -29,6 +29,12 @@ export const routes: Array<RouteConfig> = [
         meta: {},
         component: () => import('../views/ProcessManagePage.vue'),
       },
+      {
+        path: '/bejson',
+        name: 'BeJson',
+        meta: {},
+        component: () => import('../views/BeJsonPage.vue'),
+      },
     ]
   },
 ]

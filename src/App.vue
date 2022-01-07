@@ -1,7 +1,11 @@
 <template>
   <div class="app-container">
     <!-- 背景图片 -->
-    <div ref="app_container" class="app-container" :style="appBackgroundImage"></div>
+    <div
+      ref="app_container"
+      class="app-container"
+      :style="appBackgroundImage"
+    ></div>
     <Drawer>
       <RobotDrawerContent></RobotDrawerContent>
     </Drawer>
@@ -18,51 +22,58 @@
 </template>
 
 <script lang="ts">
-import { Component, Ref, Vue, Watch } from 'vue-property-decorator'
-import { Route } from 'vue-router'
-import { namespace } from 'vuex-class'
-import Api from './api/api'
-import Drawer from './components/base/Drawer.vue'
-import RobotDrawerContent from './components/business/RobotDrawerContent.vue'
-import Clock from './components/base/Clock.vue'
+import { Component, Ref, Vue, Watch } from "vue-property-decorator";
+import { Route } from "vue-router";
+import { namespace } from "vuex-class";
+import Api from "./api/api";
+import Drawer from "./components/base/Drawer.vue";
+import RobotDrawerContent from "./components/business/RobotDrawerContent.vue";
+import Clock from "./components/base/Clock.vue";
 
-const globalInfo = namespace('globalInfo')
+const globalInfo = namespace("globalInfo");
 @Component({
   components: {
     Drawer,
     RobotDrawerContent,
-    Clock
+    Clock,
   },
 })
 export default class App extends Vue {
-  @Ref('app_container') appContainer!: HTMLElement
-  appBackgroundImage = {}
-  changeBgImageTimer: any = 0
-
+  @Ref("app_container") appContainer!: HTMLElement;
+  appBackgroundImage = {};
+  changeBgImageTimer: any = 0;
 
   async refreshBackgroundImage() {
-    let { data } = await Api.fetchAppBackgroundImage()
-    this.appBackgroundImage = {
-      background: `url(${data})`
+    try {
+      let { data } = await Api.fetchAppBackgroundImage();
+      this.appBackgroundImage = {
+        background: `url(${data})`,
+      };
+    } catch (error) {
+      // 增加默认背景
+      this.appBackgroundImage = {
+        background: `url(${require("./assets/image/default-bg.jpg")})`,
+      };
     }
   }
 
   async refreshBackgroundTimer() {
     if (this.changeBgImageTimer) return;
-    await this.refreshBackgroundImage()
+    await this.refreshBackgroundImage();
+
     this.changeBgImageTimer = setInterval(() => {
-      this.refreshBackgroundImage()
-    }, 1000 * 60 * 1)
+      this.refreshBackgroundImage();
+    }, 1000 * 60 * 1);
   }
 
   mounted() {
-    this.refreshBackgroundTimer()
+    this.refreshBackgroundTimer();
   }
   destroyed() {
     if (this.changeBgImageTimer) {
       clearInterval(this.changeBgImageTimer);
-      this.changeBgImageTimer = 0
-    };
+      this.changeBgImageTimer = 0;
+    }
   }
 }
 </script>
@@ -89,7 +100,7 @@ export default class App extends Vue {
   width: 100%;
   flex-direction: column;
   overflow-y: scroll;
-  background-size: auto 100%;
+  background-size: cover;
   background-repeat: no-repeat;
   margin: 0;
   padding: 0;
@@ -110,9 +121,9 @@ export default class App extends Vue {
   top: 0;
   z-index: 300;
 }
-.app-clock{
-    position: absolute;
-    /* bottom: 0; */
-    /* right: 0; */
+.app-clock {
+  position: absolute;
+  /* bottom: 0; */
+  /* right: 0; */
 }
 </style>

@@ -28,6 +28,8 @@ export default class HomePage extends Vue {
   fns_arr = FNS_ARR;
   iconMap: any = {
     QrCode: require("../assets/image/qrcode.png"),
+    BeJson: require("../assets/image/bejson.jpg"),
+    ProcessManage: require("../assets/image/pm.png"),
   };
 
   onItemPress() {
