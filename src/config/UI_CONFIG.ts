@@ -20,3 +20,7 @@ export const FNS_ARR = [
         weight: 0,
     },
 ]
+
+export const JSON_COLOR = {
+
+}
