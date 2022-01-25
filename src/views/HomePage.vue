@@ -27,9 +27,11 @@ import Drawer from "../components/base/Drawer.vue";
 export default class HomePage extends Vue {
   fns_arr = FNS_ARR;
   iconMap: any = {
+    index: require("../assets/image/robot.jpg"),
     QrCode: require("../assets/image/qrcode.png"),
     BeJson: require("../assets/image/bejson.jpg"),
     ProcessManage: require("../assets/image/pm.png"),
+    barcode: require("../assets/image/barcode.png"),
   };
 
   onItemPress() {

@@ -25,7 +25,7 @@ const actions: ActionTree<any, any> = {
         })
         let { data: { content: robotContent } } = await Api.sendMsgToRobot(content)
         commit('commitMessage', {
-            content: robotContent,
+            content: robotContent.replace(/{br}/g, '\n'),
             model: 'left'
         })
     }

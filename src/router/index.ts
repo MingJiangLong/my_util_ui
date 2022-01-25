@@ -35,6 +35,12 @@ export const routes: Array<RouteConfig> = [
         meta: {},
         component: () => import('../views/BeJsonPage.vue'),
       },
+      {
+        path: '/barcode',
+        name: 'Barcode',
+        meta: {},
+        component: () => import('../views/BarcodePage.vue'),
+      },
     ]
   },
 ]

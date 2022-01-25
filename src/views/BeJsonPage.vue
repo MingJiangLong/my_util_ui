@@ -4,10 +4,10 @@
       <textarea v-model="parsingValue" placeholder="输入待格式化json字符串" />
     </div>
     <div class="BeJson-container-second-item">
+      <div id="parsed-dom-container" style="overflow-y: scroll"></div>
       <div v-if="parsedError" class="BeJson-container-error">
         {{ parsedError }}
       </div>
-      <div v-else id="parsed-dom-container"></div>
     </div>
   </div>
 </template>
@@ -19,18 +19,34 @@ export default class BeJson extends Vue {
     jsonKey: "#94bfda",
     doubleQuotation: "white",
   };
+
+  /**
+   * 待解析的值
+   */
   parsingValue = "";
 
-  parsedValue = {};
+  /**
+   * 解析错误提示
+   */
   parsedError = "";
 
-  @Watch("parsingValue")
+  @Watch("parsingValue", {
+    immediate: true,
+    deep: true,
+  })
   onParsingValueChange(changeValue: string) {
     try {
+      if (changeValue === "") return;
       this.parsedError = "";
-      this.parsedValue = {};
+
+      /**
+       * JSON 检查格式是否正确
+       */
       let paredValue = JSON.parse(changeValue);
 
+      /**
+       * 生成的节点
+       */
       let resultDom = null;
       if (
         Object.prototype.toString.call(paredValue) === "[object Object]" ||
@@ -38,21 +54,25 @@ export default class BeJson extends Vue {
       ) {
         resultDom = this.genParsedDom(paredValue);
       } else {
+        // 简单类型直接展示
         resultDom = document.createElement("div");
         resultDom.innerText = `${paredValue}`;
       }
 
+      // TODO: 已有节点移除需要防止数组坍塌
       let findDom = document.getElementById("parsed-dom-container");
+
       if (findDom) {
         let childNodes = findDom.childNodes;
-        console.log(childNodes);
+        let childNodesLength = childNodes.length;
 
-        let childArr = childNodes.entries();
-
-        for (let value of childArr) {
-          let [index, node] = value;
-          findDom.removeChild(node);
+        // 移除已有节点
+        if (childNodesLength) {
+          for (let i = childNodesLength - 1; i >= 0; i--) {
+            findDom.removeChild(childNodes[i]);
+          }
         }
+        // 将生成的节点插入
         findDom.appendChild(resultDom);
       }
     } catch (error) {
@@ -61,16 +81,69 @@ export default class BeJson extends Vue {
   }
 
   /**
-   * 生成节点外壳
-   * {}  name:{}
+   * 生成外壳
+   * @param key 节点名字
+   * @param valueType 所属数据类型
+   * @param haveMore 是否有更多的key
    */
-  genShell(prefix = "{", suffix = "}") {
-    let prefixDom = document.createElement("div");
-    let suffixDom = document.createElement("div");
-    prefixDom.innerText = `${prefix}`;
-    suffixDom.innerText = `${suffix}`;
-    prefixDom.style.color = "white";
-    suffixDom.style.color = "white";
+  genShell(key: string, value: any, haveMore = false) {
+    let prefixDom = null;
+    let suffixDom = null;
+    let valueType = this.getValueType(value);
+    if (valueType === "Object" || valueType === "Array") {
+      prefixDom = document.createElement("div");
+      suffixDom = document.createElement("div");
+    } else {
+      suffixDom = document.createElement("span");
+      prefixDom = document.createElement("span");
+    }
+
+    let prefixPart1 = document.createElement("span"); // key
+    let prefixPart2 = document.createElement("span"); // ：
+    let prefixPart3 = document.createElement("span"); // {/[
+    let prefixPart4 = document.createElement("img");
+    prefixPart4.style.cssText =
+      "display:inline-block;height:20px;width:20px;margin:0 10px";
+    let suffixDomPart1 = document.createElement("span");
+
+    if (key) {
+      prefixPart2.innerText = ":";
+      prefixPart1.innerText = key;
+      prefixPart2.style.paddingRight = "7px";
+      prefixPart2.style.paddingLeft = "3px";
+    }
+    if (valueType === "Object" || valueType === "Array") {
+      // if (value.$$status === undefined) {
+      //   value.$$status = true;
+      // }
+
+      // if (value.$$status) {
+      //   prefixPart4.src = require("../assets/image/reduce.png");
+      // } else {
+      //   prefixPart4.src = require("../assets/image/add.png");
+      // }
+      prefixPart3.innerText = valueType === "Object" ? "{" : "[";
+      suffixDom.innerText = valueType === "Object" ? "}" : "]";
+    }
+
+    suffixDomPart1.innerText = haveMore ? "," : "";
+    suffixDomPart1.style.paddingLeft = "3px";
+    suffixDom.style.color = prefixDom.style.color = "#c1c1c1";
+    prefixPart2.style.color = suffixDomPart1.style.color = "white";
+
+    prefixDom.appendChild(prefixPart1);
+    prefixDom.appendChild(prefixPart2);
+    prefixDom.appendChild(prefixPart3);
+    if (valueType === "Object" || valueType === "Array") {
+      // prefixPart4.addEventListener("click", () => {
+      //   value.$$status = !value.$$status;
+      // });
+      // 添加打开或者关闭标签
+      // prefixDom.appendChild(prefixPart4);
+    }
+
+    suffixDom.appendChild(suffixDomPart1);
+
     return {
       prefixDom,
       suffixDom,
@@ -96,60 +169,83 @@ export default class BeJson extends Vue {
    * 默认是一个json字符串
    * 会通过JSON.parse校验
    */
-  genParsedDom(values: any, parentDom?: HTMLElement, key?: string, tag = 1) {
+  genParsedDom(
+    values: any,
+    parentDom?: HTMLElement,
+    dataKey?: string,
+    keyIndex = 0,
+    keyCount = 0,
+    tag = 1
+  ) {
     let parentContainer = parentDom || document.createElement("div");
-
+    // 如果是最外层 增加间距
     if (tag === 1) {
-      parentContainer.style.margin = "20px";
+      parentContainer.style.margin = "20px 20px 0 20px";
     }
+
+    // 生成子元素节点
     let childContainer = document.createElement("div");
-    childContainer.style.paddingLeft = `${tag * 20}px`;
+    childContainer.style.paddingLeft = `${20}px`;
     childContainer.style.fontSize = "22px";
     childContainer.style.fontWeight = "800";
+
     let valuesType = this.getValueType(values);
 
+    // 基础类型直接返回
     if (!this.needDeep(values)) {
       childContainer.innerText = `${values}`;
       childContainer.style.color = "white";
       return childContainer;
     }
 
-    let prefixShell = "";
-    let shellSuffix = "";
-    if (valuesType === "Object") {
-      prefixShell = key ? `${key}: {` : "{";
-      shellSuffix = "},";
-    } else {
-      prefixShell = key ? `${key}: [` : "[";
-      shellSuffix = "],";
-    }
+    // 生成包裹shell [] / {} valuesType这里只会是复杂类型
+    let shell = this.genShell(dataKey || "", values, keyIndex !== keyCount);
 
-    let shell = this.genShell(prefixShell, shellSuffix);
-    parentContainer.appendChild(shell.prefixDom);
-
+    // 复杂类型递归直至简单类型
     if (valuesType === "Object") {
       let keys = Object.keys(values);
-      // 主题内容
-      keys.forEach((key) => {
+      keys.forEach((key, index) => {
         let currentValue = values[key];
         if (this.needDeep(currentValue)) {
-          this.genParsedDom(currentValue, childContainer, key, tag++);
+          this.genParsedDom(
+            currentValue,
+            childContainer,
+            key,
+            index,
+            keys.length - 1,
+            tag++
+          );
         } else {
-          this.appendChild(childContainer, `${key}: `, currentValue);
+          this.appendChild(
+            childContainer,
+            key,
+            currentValue,
+            index,
+            keys.length - 1
+          );
         }
       });
     } else {
-      values.forEach((value: any) => {
+      values.forEach((value: any, index: number) => {
         if (this.needDeep(value)) {
-          this.genParsedDom(value, childContainer, "", tag++);
+          this.genParsedDom(
+            value,
+            childContainer,
+            "",
+            index,
+            values.length - 1,
+            tag++
+          );
         } else {
-          this.appendChild(childContainer, "", value);
+          this.appendChild(childContainer, "", value, index, values.length - 1);
         }
       });
     }
-
+    // 将生成节点添加至新child body
+    parentContainer.appendChild(shell.prefixDom);
     parentContainer.appendChild(childContainer);
     parentContainer.appendChild(shell.suffixDom);
+
     return parentContainer;
   }
   /**
@@ -159,65 +255,53 @@ export default class BeJson extends Vue {
     parentDom: HTMLElement,
     key?: string,
     value?: any,
-    extraStyle?: string
+    keyIndex = 0,
+    keyCount = 0
   ) {
     let dom = document.createElement("div");
-    dom.style.color = "white";
+    dom.style.color = "#94bfda";
     dom.style.fontSize = "20px";
 
-    if (key) {
-      let keyDom = document.createElement("span");
-      keyDom.style.color = "#94bfda";
-      keyDom.innerText = `${key}`;
-      dom.appendChild(keyDom);
-    }
-
-    let prefixDom = document.createElement("span");
-    prefixDom.style.color = "#CE9178";
     let valueDom = document.createElement("span");
     valueDom.innerText = `${value}`;
     valueDom.style.color = "#c6b625";
-    let suffixDom = document.createElement("span");
-    suffixDom.style.color = "#CE9178";
-    let valueType = this.getValueType(value);
 
+    let valueType = this.getValueType(value);
     switch (valueType) {
       case "String":
-        prefixDom.innerText = '"';
-        suffixDom.innerText = '",';
+        valueDom.innerText = `"${value}"`;
+        break;
+      case "Number":
+        valueDom.style.color = "#bec5a8";
         break;
       case "Array":
-        prefixDom.innerText = "[";
-        suffixDom.innerText = "],";
         break;
       case "Boolean":
-        valueDom.innerText = `${value},`;
-        valueDom.style.color = "red";
+        valueDom.style.color = "#4c85b5";
         break;
       case "Undefined":
-        valueDom.innerText = `${value},`;
-        valueDom.style.color = "blue";
+        valueDom.style.color = "#5191c6";
+
         break;
       case "Null":
-        valueDom.innerText = `${value},`;
-        valueDom.style.color = "blue";
+        valueDom.style.color = "#5191c6";
         break;
       default:
-        valueDom.innerText = `${value},`;
         valueDom.style.color = "#CE9178";
     }
-    dom.appendChild(prefixDom);
+    const shell = this.genShell(key || "", value, keyIndex !== keyCount);
+    dom.appendChild(shell.prefixDom);
     dom.appendChild(valueDom);
-    dom.appendChild(suffixDom);
-
-    if (extraStyle) {
-      dom.setAttribute("style", extraStyle);
-    }
+    dom.appendChild(shell.suffixDom);
     parentDom.appendChild(dom);
   }
 }
 </script>
 <style scoped>
+.icon {
+  width: 1.8em;
+  height: 1.8em;
+}
 .BeJson-container {
   height: 100%;
   display: flex;

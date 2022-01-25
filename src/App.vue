@@ -1,11 +1,5 @@
 <template>
   <div class="app-container">
-    <!-- 背景图片 -->
-    <div
-      ref="app_container"
-      class="app-container"
-      :style="appBackgroundImage"
-    ></div>
     <Drawer>
       <RobotDrawerContent></RobotDrawerContent>
     </Drawer>
@@ -14,9 +8,6 @@
       <div class="app-render">
         <router-view></router-view>
       </div>
-    </div>
-    <div class="app-clock">
-      <Clock></Clock>
     </div>
   </div>
 </template>
@@ -67,7 +58,7 @@ export default class App extends Vue {
   }
 
   mounted() {
-    this.refreshBackgroundTimer();
+    // this.refreshBackgroundTimer();
   }
   destroyed() {
     if (this.changeBgImageTimer) {

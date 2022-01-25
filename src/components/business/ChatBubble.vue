@@ -3,10 +3,16 @@
     <div class="chatbubble_outer_container">
       <div
         class="chatbubble_container"
-        :style="{ justifyContent: model == 'right' ? 'flex-end' : 'flex-start' }"
+        :style="{
+          justifyContent: model == 'right' ? 'flex-end' : 'flex-start',
+        }"
       >
         <!-- 头像 -->
-        <img src="../../assets/image/robot2.jpeg" class="chatbubble_img" v-if="model === 'left'" />
+        <img
+          src="../../assets/image/robot2.jpeg"
+          class="chatbubble_img"
+          v-if="model === 'left'"
+        />
         <!-- 聊天框 -->
         <div
           :style="{
@@ -31,24 +37,30 @@
                 background: model === 'left' ? '#fff' : '#1693a4',
                 color: model === 'left' ? '#111' : '#fff',
               }"
-            >{{ content }}</div>
+              v-html="content"
+            ></div>
             <div class="chatbubble_bubble_right" v-if="model === 'right'"></div>
           </div>
         </div>
-        <img src="../../assets/image/me.jpg" class="chatbubble_img" v-if="model === 'right'" />
+        <img
+          src="../../assets/image/me.jpg"
+          class="chatbubble_img"
+          v-if="model === 'right'"
+        />
       </div>
     </div>
   </div>
 </template>
 <script lang='ts'>
-import { Component, Prop, Vue } from 'vue-property-decorator'
+import { Component, Prop, Vue } from "vue-property-decorator";
 @Component({
   components: {},
 })
 export default class ChatBubble extends Vue {
-  @Prop({ type: String, default: 'left' }) readonly model!: 'left' | 'right'
-  @Prop({ type: String, default: '聊天内容dddzzzzzzzzzzzzzzz' }) readonly content!: string
-  mounted() { }
+  @Prop({ type: String, default: "left" }) readonly model!: "left" | "right";
+  @Prop({ type: String, default: "聊天内容dddzzzzzzzzzzzzzzz" })
+  readonly content!: string;
+  mounted() {}
 }
 </script>
 <style scoped>
@@ -82,6 +94,7 @@ export default class ChatBubble extends Vue {
   padding: 0.1rem 0.2rem;
   word-break: break-all;
   word-wrap: break-word;
+  max-width: 7rem;
   font-size: 0.18rem;
   min-height: 0.6rem;
   text-align: left;
